@@ -29,18 +29,21 @@ export default function Checkout(){
 
     try{
       // @ts-ignore
-      const handler = window.PaystackPop.setup({
+        const handler = window.PaystackPop.setup({
         key: "pk_test_cfb90913888b72d0f5d8d40f6ade5a7b99d98665",
         email: customer.customer_email,
         amount: Math.round(Number(total)*100),
         currency: 'NGN',
         ref: `${Date.now()}`,
-        callback: async function(res:any){
-          const {data:{user}} = await supabase.auth.getUser()
-          await supabase.from('orders').insert({user_id:user?.id, ...customer, total, items:cart, paystack_ref:res.reference, status:'paid'})
-          await fetch('/api/send-order-email',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...customer,total,items:cart,ref:res.reference})})
-          alert('Paid! Ref: '+res.reference)
-          window.location.href='/shop'
+        callback: function(res){
+          // run async work inside
+          (async ()=>{
+            const {data:{user}} = await supabase.auth.getUser()
+            await supabase.from('orders').insert({user_id:user?.id, ...customer, total, items:cart, paystack_ref:res.reference, status:'paid'})
+            await fetch('/api/send-order-email',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...customer,total,items:cart,ref:res.reference})})
+            alert('Paid! Ref: '+res.reference)
+            window.location.href='/shop'
+          })()
         },
         onClose: function(){ setLoading(false) }
       })
