@@ -26,7 +26,7 @@ export default function Checkout(){
     }
     // @ts-ignore
     window.PaystackPop.newTransaction({
-      key: "pk_test_cfb90913888b72d0f5d8d40f6ade5a7b99d98665",
+      key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC,
       email: customer.customer_email,
       amount: Math.round(Number(total)*100),
       currency: 'NGN',
