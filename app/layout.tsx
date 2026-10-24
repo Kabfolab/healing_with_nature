@@ -1,4 +1,4 @@
-import "./globals.css";
+import "@/app/globals.css";
 import { CartProvider } from "@/context/CartContext";
 import { Toaster } from "react-hot-toast";
 import Footer, { WhatsAppFloat } from "@/components/Footer";
