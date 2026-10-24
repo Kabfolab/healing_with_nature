@@ -38,7 +38,7 @@ export default function Checkout(){
     }
 
     const handler=window.PaystackPop.setup({
-      key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
+      key: "pk_test_cfb90913888b72d0f5d8d40f6ade5a7b99d98665",
       email: customer.customer_email,
       amount: Math.round(total*100), // must be integer kobo
       currency:'NGN',
