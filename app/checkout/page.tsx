@@ -1,6 +1,6 @@
 "use client"
 import { useCart } from '@/context/CartContext'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import Link from 'next/link'
 declare global { interface Window { PaystackPop:any } }
@@ -9,9 +9,26 @@ export default function Checkout(){
   const {cart,total} = useCart()
   const [loading,setLoading]=useState(false)
 
+  // Load Paystack once when page opens
+  useEffect(()=>{
+    if(!document.querySelector('script[src="https://js.paystack.co/v1/inline.js"]')){
+      const s=document.createElement('script'); 
+      s.src='https://js.paystack.co/v1/inline.js'; 
+      document.body.appendChild(s)
+    }
+  },[])
+
   const handlePay = async (e:any)=>{
     e.preventDefault()
     if(cart.length===0) return alert("Cart empty")
+    
+    // Check if Paystack script loaded
+    if(!window.PaystackPop){
+      alert("Paystack is still loading, wait 2 seconds and try again")
+      setLoading(false)
+      return
+    }
+
     setLoading(true)
     const customer = {
       customer_name: e.target.name.value,
@@ -19,23 +36,28 @@ export default function Checkout(){
       customer_phone: e.target.phone.value,
       shipping_address: e.target.address.value,
     }
-    const s=document.createElement('script'); s.src='https://js.paystack.co/v1/inline.js'; document.body.appendChild(s)
-    s.onload=()=>{
-      const handler=window.PaystackPop.setup({
-        key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
-        email: customer.customer_email,
-        amount: total*100,
-        currency:'NGN',
-        callback: async (res:any)=>{
+
+    const handler=window.PaystackPop.setup({
+      key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
+      email: customer.customer_email,
+      amount: Math.round(total*100), // must be integer kobo
+      currency:'NGN',
+      ref: ''+Math.floor((Math.random() * 1000000000) + 1),
+      callback: async (res:any)=>{
+        try {
           const {data:{user}} = await supabase.auth.getUser()
           await supabase.from('orders').insert({user_id:user?.id, ...customer, total, items:cart, paystack_ref:res.reference, status:'paid'})
           await fetch('/api/send-order-email',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...customer,total,items:cart,ref:res.reference})})
           alert('Paid! We will contact you shortly 🌿')
           window.location.href='/shop'
-        },
-        onClose:()=>setLoading(false)
-      }); handler.openIframe()
-    }
+        } catch(err){
+          alert('Payment success but order save failed, contact us with ref: '+res.reference)
+          setLoading(false)
+        }
+      },
+      onClose:()=>setLoading(false)
+    }); 
+    handler.openIframe()
   }
 
   return (
@@ -63,4 +85,4 @@ export default function Checkout(){
       </div>
     </div>
   )
-      }
+}
