@@ -15,7 +15,7 @@ export default function Checkout(){
   const pay = ()=>{
     setLoading(true)
     try{
-      const PAYSTACK_KEY = "pk_test_f3a6e7d8b2c9a1e4f5d6c7b8a9e0f1d2c3b4a5d6" // REPLACE with your real pk_test_... key
+      const PAYSTACK_KEY = "pk_test_cfb90913888b72d0f5d8d40f6ade5a7b99d98665" // REPLACE with your real pk_test_... key
       console.log("KEY:", PAYSTACK_KEY)
       // @ts-ignore
       if(!(window as any).PaystackPop){
