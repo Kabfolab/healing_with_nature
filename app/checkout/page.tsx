@@ -83,12 +83,11 @@ export default function Checkout(){
         }
       })
       handler.openIframe()
-    }catch(err){
-      console.error(err)
-      alert("Paystack error, check console")
-      setLoading(false)
-    }
-  }
+      }catch(err:any){
+        console.error(err)
+        alert("Paystack error: " + (err?.message || JSON.stringify(err)))
+        setLoading(false)
+     }
 
   return (
     <div className="min-h-screen bg-[#f8fdf8] p-4 md:p-8">
